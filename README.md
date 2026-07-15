@@ -1,66 +1,55 @@
 <<<<<<< HEAD
 # SISCOM-UNET
 Sistema de Comunicación y Reporte para Seguridad Universitaria
-=======
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+=======# SISCOM-UNET
+### Sistema de Comunicación y Reporte para Seguridad Universitaria
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+SISCOM-UNET es una plataforma de software diseñada para digitalizar, centralizar y optimizar la gestión operativa y la comunicación del cuerpo de seguridad de la Universidad Nacional Experimental del Táchira (UNET). El sistema sustituye los esquemas de radiocomunicación tradicionales por una arquitectura distribuida en tiempo real que mejora la documentación de incidencias y minimiza el tiempo de respuesta ante emergencias en el campus.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Módulos del Sistema
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+El panel administrativo web implementa las siguientes capacidades operativas:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+*   **Comunicación en Tiempo Real:** Chat bidireccional e interactivo con soporte para transmisiones de texto y adjuntos multimedia (imágenes, audio y video) procesados mediante sockets.
+*   **Gestión y Reporte de Incidentes:** Formulario de registro de situaciones irregulares que incluye captura de geolocalización, evidencias digitales y auditoría de estados de resolución.
+*   **Control de Tareas y Checklists:** Asignación, seguimiento y verificación de hojas de ruta diarias (apertura de accesos, monitoreo de infraestructura) destinadas al personal de guardia.
+*   **Protocolos de Emergencia:** Recepción prioritaria de alertas críticas emitidas desde dispositivos móviles y coordinación de enlace operativo con organismos de rescate públicos (Protección Civil).
+*   **Administración de Personal:** Control de perfiles de usuario, roles, activación/desactivación de cuentas y asignación estructurada de turnos de vigilancia.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Arquitectura y Stack Tecnológico
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+El proyecto ha sido estructurado bajo altos estándares de desacoplamiento, escalabilidad y seguridad:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+*   **Backend:** PHP 8.2+ y Laravel 12.x bajo el patrón arquitectónico Modelo-Vista-Controlador (MVC).
+*   **Seguridad y Control de Acceso:** Autenticación basada en API mediante Laravel Sanctum. Implementación de Políticas de Autorización (Laravel Policies) acopladas a controladores y rutas mediante middlewares específicos para restringir privilegios críticos a nivel de modelo.
+*   **Base de Datos:** MySQL con gestión de colas de procesos (Queue Jobs) para la ejecución asíncrona de tareas pesadas.
+*   **Tiempo Real:** Laravel Reverb como servidor de WebSockets nativo.
+*   **Frontend Web:** JavaScript moderno, Bootstrap y compilación optimizada a través de Vite.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Requisitos de Sistema
 
-### Premium Partners
+*   PHP >= 8.2
+*   Composer >= 2.x
+*   Node.js >= 18.x
+*   NPM >= 9.x
+*   Motor de base de datos MySQL o MariaDB
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## Instrucciones de Instalación y Configuración
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Siga las siguientes instrucciones para desplegar un entorno de desarrollo local:
 
-## Code of Conduct
+### 1. Clonar el repositorio y configurar dependencias de PHP
+```bash
+git clone [https://github.com/alejomm05/SISCOM-UNET.git](https://github.com/alejomm05/SISCOM-UNET.git)
+cd SISCOM-UNET
+composer install
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
->>>>>>> Douglas
+>>>>>>> Douglas_Aliendres 
