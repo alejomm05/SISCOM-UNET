@@ -11,10 +11,10 @@
         <div class="card metric-card bg-primary">
             <div class="card-body">
                 <div class="card-trend">
-                    <span class="badge bg-light text-primary">+{{ $reports->count() }}</span>
+                    <span class="badge bg-light text-primary">+{{ $stats['total'] }}</span>
                 </div>
                 <h5 class="card-title">Total Reportes</h5>
-                <p class="card-value">{{ $reports->count() }}</p>
+                <p class="card-value">{{ $stats['total'] }}</p>
                 <i class="fas fa-file-alt card-icon"></i>
             </div>
         </div>
@@ -23,10 +23,10 @@
         <div class="card metric-card bg-success">
             <div class="card-body">
                 <div class="card-trend">
-                    <span class="badge bg-light text-success">{{ $reports->where('type', 'incidente')->count() }}</span>
+                    <span class="badge bg-light text-success">{{ $stats['sospechoso'] }}</span>
                 </div>
-                <h5 class="card-title">Incidentes</h5>
-                <p class="card-value">{{ $reports->where('type', 'incidente')->count() }}</p>
+                <h5 class="card-title">Sospechosos</h5>
+                <p class="card-value">{{ $stats['sospechoso'] }}</p>
                 <i class="fas fa-exclamation-circle card-icon"></i>
             </div>
         </div>
@@ -35,10 +35,10 @@
         <div class="card metric-card bg-warning">
             <div class="card-body">
                 <div class="card-trend">
-                    <span class="badge bg-light text-warning">{{ $reports->where('type', 'mantenimiento')->count() }}</span>
+                    <span class="badge bg-light text-warning">{{ $stats['daño'] }}</span>
                 </div>
-                <h5 class="card-title">Mantenimiento</h5>
-                <p class="card-value">{{ $reports->where('type', 'mantenimiento')->count() }}</p>
+                <h5 class="card-title">Daños</h5>
+                <p class="card-value">{{ $stats['daño'] }}</p>
                 <i class="fas fa-tools card-icon"></i>
             </div>
         </div>
@@ -47,10 +47,10 @@
         <div class="card metric-card bg-info">
             <div class="card-body">
                 <div class="card-trend">
-                    <span class="badge bg-light text-info">{{ $reports->whereNotNull('image_path')->count() }}</span>
+                    <span class="badge bg-light text-info">{{ $stats['with_files'] }}</span>
                 </div>
                 <h5 class="card-title">Con Archivos</h5>
-                <p class="card-value">{{ $reports->whereNotNull('image_path')->count() }}</p>
+                <p class="card-value">{{ $stats['with_files'] }}</p>
                 <i class="fas fa-paperclip card-icon"></i>
             </div>
         </div>
@@ -117,11 +117,11 @@
                     <div class="col-md-3">
                         <select class="form-select form-select-lg" id="typeFilter">
                             <option value="">Todos los tipos</option>
-                            <option value="incidente">Incidentes</option>
-                            <option value="mantenimiento">Mantenimiento</option>
-                            <option value="acceso">Control de Accesos</option>
-                            <option value="ronda">Ronda de Seguridad</option>
+                            {{-- Mismos tipos que valida Api\ReportController --}}
+                            <option value="sospechoso">Sospechoso</option>
+                            <option value="daño">Daño</option>
                             <option value="emergencia">Emergencia</option>
+                            <option value="otro">Otro</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -172,20 +172,16 @@
                             <tr class="report-row" 
                                 data-type="{{ $report->type }}"
                                 data-has-file="{{ $report->image_path ? 'with_files' : 'without_files' }}"
-                                data-search="{{ strtolower($report->description . ' ' . $report->location . ' ' . ($report->user->name ?? '')) }}">
+                                data-search="{{ mb_strtolower($report->description . ' ' . $report->location_text . ' ' . ($report->user->name ?? '')) }}">
                                 <td class="ps-4 fw-bold text-primary">#{{ $report->id }}</td>
                                 <td>
-                                    @if ($report->type === 'incidente')
+                                    @if ($report->type === 'sospechoso')
                                         <span class="badge bg-danger rounded-pill px-3 py-2">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>INCIDENTE
+                                            <i class="fas fa-user-secret me-1"></i>SOSPECHOSO
                                         </span>
-                                    @elseif ($report->type === 'mantenimiento')
+                                    @elseif ($report->type === 'daño')
                                         <span class="badge bg-warning rounded-pill px-3 py-2">
-                                            <i class="fas fa-tools me-1"></i>MANTENIMIENTO
-                                        </span>
-                                    @elseif ($report->type === 'acceso')
-                                        <span class="badge bg-info rounded-pill px-3 py-2">
-                                            <i class="fas fa-door-open me-1"></i>ACCESO
+                                            <i class="fas fa-tools me-1"></i>DAÑO
                                         </span>
                                     @elseif ($report->type === 'emergencia')
                                         <span class="badge bg-dark rounded-pill px-3 py-2">
@@ -211,10 +207,11 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                                        <span class="fw-semibold">{{ $report->location ?? 'Ubicación no especificada' }}</span>
+                                        <span class="fw-semibold">{{ $report->location_text ?? 'Ubicación no especificada' }}</span>
                                     </div>
                                 </td>
                                 <td>
+                                    <span class="report-description">{{ Str::limit($report->description, 80) }}</span>
                                 </td>
                                 <td>
                                     @if ($report->image_path)

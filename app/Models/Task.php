@@ -36,6 +36,19 @@ class Task extends Model
         return $this->belongsTo(User::class, 'assigned_to'); 
     }
 
+    /**
+     * Estado para el panel: 'completed', 'expired' (pendiente con fecha límite pasada) o 'pending'.
+     * Mismo criterio que la API: una tarea de hoy sigue vigente hasta que termina el día.
+     */
+    public function getDisplayStatusAttribute(): string
+    {
+        if ($this->status === 'completed') {
+            return 'completed';
+        }
+
+        return $this->due_date && $this->due_date->lt(now()->startOfDay()) ? 'expired' : 'pending';
+    }
+
         public function emergency(): BelongsTo
     {
         return $this->belongsTo(Emergency::class);

@@ -69,6 +69,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Credenciales de demostración del panel
+    |--------------------------------------------------------------------------
+    |
+    | Si se definen, el login del panel las muestra en un recuadro (útil para
+    | demos). Vacías por defecto: nunca escribir credenciales reales en la vista.
+    |
+    */
+
+    'demo_login' => [
+        'email' => env('PANEL_DEMO_EMAIL'),
+        'password' => env('PANEL_DEMO_PASSWORD'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
     |

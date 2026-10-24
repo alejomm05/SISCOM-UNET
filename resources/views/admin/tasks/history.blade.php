@@ -11,10 +11,10 @@
         <div class="card metric-card bg-primary">
             <div class="card-body">
                 <div class="card-trend">
-                    <span class="badge bg-light text-primary">+{{ $tasks->count() }}</span>
+                    <span class="badge bg-light text-primary">+{{ $stats['total'] }}</span>
                 </div>
                 <h5 class="card-title">Total Tareas</h5>
-                <p class="card-value">{{ $tasks->count() }}</p>
+                <p class="card-value">{{ $stats['total'] }}</p>
                 <i class="fas fa-tasks card-icon"></i>
             </div>
         </div>
@@ -23,10 +23,10 @@
         <div class="card metric-card bg-success">
             <div class="card-body">
                 <div class="card-trend">
-                    <span class="badge bg-light text-success">{{ $tasks->where('display_status', 'completed')->count() }}</span>
+                    <span class="badge bg-light text-success">{{ $stats['completed'] }}</span>
                 </div>
                 <h5 class="card-title">Completadas</h5>
-                <p class="card-value">{{ $tasks->where('display_status', 'completed')->count() }}</p>
+                <p class="card-value">{{ $stats['completed'] }}</p>
                 <i class="fas fa-check-circle card-icon"></i>
             </div>
         </div>
@@ -35,10 +35,10 @@
         <div class="card metric-card bg-warning">
             <div class="card-body">
                 <div class="card-trend">
-                    <span class="badge bg-light text-warning">{{ $tasks->where('display_status', 'pending')->count() }}</span>
+                    <span class="badge bg-light text-warning">{{ $stats['pending'] }}</span>
                 </div>
                 <h5 class="card-title">Pendientes</h5>
-                <p class="card-value">{{ $tasks->where('display_status', 'pending')->count() }}</p>
+                <p class="card-value">{{ $stats['pending'] }}</p>
                 <i class="fas fa-clock card-icon"></i>
             </div>
         </div>
@@ -47,10 +47,10 @@
         <div class="card metric-card bg-danger">
             <div class="card-body">
                 <div class="card-trend">
-                    <span class="badge bg-light text-danger">{{ $tasks->where('display_status', 'expired')->count() }}</span>
+                    <span class="badge bg-light text-danger">{{ $stats['expired'] }}</span>
                 </div>
                 <h5 class="card-title">Vencidas</h5>
-                <p class="card-value">{{ $tasks->where('display_status', 'expired')->count() }}</p>
+                <p class="card-value">{{ $stats['expired'] }}</p>
                 <i class="fas fa-exclamation-triangle card-icon"></i>
             </div>
         </div>

@@ -61,5 +61,10 @@ No admin is seeded. Create one with `php artisan tinker`: `App\Models\Admin::cre
 
 - Route order matters for literal segments next to `{param}` routes (e.g. `tasks/clear-all` must be declared before `tasks/{task}`).
 - `tasks.description` is NOT NULL even though the API treats it as optional (`TaskController` stores `''`).
+- Report types are `sospechoso`, `daño`, `emergencia`, `otro` (validated in `Api\ReportController`). The panel view must use the same values.
+- `reports.location` is double-encoded (the controller calls `json_encode` and the model's `json` cast encodes again). The app depends on the current format, so don't change how it's stored. In views, use `$report->location_text`.
+- Panel counters (`TaskAdminController`, `ReportAdminController`) are computed over the whole table in `$stats`, not over the paginated page. Task status shown in the panel comes from `Task::display_status` (completed / expired / pending).
+- Never hardcode credentials in views. The login demo box only renders when `PANEL_DEMO_EMAIL`/`PANEL_DEMO_PASSWORD` are set (`config('app.demo_login')`).
+- Some dashboard card badges (e.g. "+12%", "18min") are static decoration, not real metrics.
 - With `REVERB_SERVER_PATH=/socket`, Laravel's server-side publish to Reverb fails with "Pusher error: Not found". The Pusher PHP SDK resolves `apps/...` against a base URL without a trailing slash and drops `/socket`. It works with an empty path.
 - `.env` is unreadable inside Claude Code's sandbox. Run artisan with explicit env vars (e.g. `APP_KEY`, `DB_*`), or tests that boot the app fail with MissingAppKeyException.

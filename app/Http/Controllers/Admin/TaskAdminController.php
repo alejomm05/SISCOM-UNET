@@ -23,7 +23,15 @@ class TaskAdminController extends Controller
         
         $guardias = User::where('role', 'guardia')->get(['id', 'name']);
 
-        return view('admin.tasks.history', compact('tasks', 'guardias'));
+        // Contadores sobre todas las tareas, no solo sobre la página actual
+        $stats = [
+            'total' => Task::count(),
+            'completed' => Task::where('status', 'completed')->count(),
+            'expired' => Task::where('status', '!=', 'completed')->where('due_date', '<', now()->startOfDay())->count(),
+        ];
+        $stats['pending'] = $stats['total'] - $stats['completed'] - $stats['expired'];
+
+        return view('admin.tasks.history', compact('tasks', 'guardias', 'stats'));
     }
 
     // ... (Método assign existente) ...

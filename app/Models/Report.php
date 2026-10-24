@@ -28,6 +28,27 @@ protected $fillable = [
     /**
      * El Reporte pertenece a un Usuario (Guardia).
      */
+    /**
+     * Ubicación legible para el panel. Api\ReportController guarda json_encode(location) y el cast
+     * 'json' vuelve a codificarla, así que al leer queda un string con comillas ("Edificio B").
+     * Se decodifica una vez más si hace falta; no se cambia el guardado para no alterar lo que recibe la app.
+     */
+    public function getLocationTextAttribute(): ?string
+    {
+        $location = $this->location;
+
+        if (is_string($location)) {
+            $decoded = json_decode($location, true);
+            $location = json_last_error() === JSON_ERROR_NONE ? $decoded : $location;
+        }
+
+        if (is_array($location)) {
+            return implode(', ', $location);
+        }
+
+        return $location === null ? null : (string) $location;
+    }
+
     public function user(): BelongsTo
     {
         // Asumimos que la clave foránea es 'user_id'

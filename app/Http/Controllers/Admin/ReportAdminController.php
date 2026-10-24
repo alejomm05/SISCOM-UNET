@@ -18,7 +18,16 @@ class ReportAdminController extends Controller
         // ... (lógica existente) ...
         $reports = Report::with('user')->orderBy('created_at', 'desc')->paginate(20);
 
-        return view('admin.reports.index', compact('reports'));
+        // Contadores sobre todos los reportes, no solo sobre la página actual.
+        // Tipos válidos: los que acepta Api\ReportController (sospechoso, daño, emergencia, otro)
+        $stats = [
+            'total' => Report::count(),
+            'sospechoso' => Report::where('type', 'sospechoso')->count(),
+            'daño' => Report::where('type', 'daño')->count(),
+            'with_files' => Report::whereNotNull('image_path')->count(),
+        ];
+
+        return view('admin.reports.index', compact('reports', 'stats'));
     }
 
     /**

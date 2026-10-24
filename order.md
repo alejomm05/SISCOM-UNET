@@ -35,8 +35,8 @@ SISCOM-UNET/
 │   │   ├── Admin.php                           # Supervisores (tabla admins)
 │   │   ├── User.php                            # Guardias (tabla users): role, shift, reports(), tasks()
 │   │   ├── Message.php                         # Mensaje del chat grupal; autor guardia (user_id) o supervisor (admin_id)
-│   │   ├── Report.php                          # Reporte de incidente
-│   │   ├── Task.php                            # Tarea asignada (puede venir de una emergencia)
+│   │   ├── Report.php                          # Reporte de incidente; location_text = ubicación legible para el panel
+│   │   ├── Task.php                            # Tarea asignada (puede venir de una emergencia); display_status para el panel
 │   │   ├── Emergency.php                       # Emergencia (reportada por guardia o por el admin)
 │   │   └── EmergencyContact.php                # Contacto externo (bomberos, policía, médico...)
 │   ├── Policies/
@@ -46,7 +46,7 @@ SISCOM-UNET/
 ├── bootstrap/
 │   ├── app.php                                 # Rutas, excepción CSRF de admin/login, alias abilities/ability
 │   └── providers.php
-├── config/                                     # Configuración de Laravel; propios: auth.php (guards), broadcasting.php, reverb.php, sanctum.php
+├── config/                                     # Configuración de Laravel; propios: app.php (demo_login), auth.php (guards), broadcasting.php, reverb.php, sanctum.php
 ├── database/
 │   ├── factories/
 │   │   └── UserFactory.php

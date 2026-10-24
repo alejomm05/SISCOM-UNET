@@ -257,10 +257,13 @@
         </div>
     </div>
 
-        <div class="footer-info" style="margin-bottom: 70px;" >
-        <div class="fw-bold">Email:admin@guardapp.com</div>
-        <div class="fw-bold">Contraseña:12345678</div>
+    {{-- Solo se muestra si PANEL_DEMO_EMAIL/PANEL_DEMO_PASSWORD están definidas en .env (ver config/app.php) --}}
+    @if (config('app.demo_login.email'))
+    <div class="footer-info" style="margin-bottom: 70px;" >
+        <div class="fw-bold">Email: {{ config('app.demo_login.email') }}</div>
+        <div class="fw-bold">Contraseña: {{ config('app.demo_login.password') }}</div>
     </div>
+    @endif
     <!-- Información del autor -->
     <div class="footer-info">
         <div class="fw-bold">Autor: Douglas Aliendres</div>
