@@ -4,9 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-SISCOM-UNET: communication and incident-reporting system for the UNET university security staff (chat, incident reports with geolocation, guard task checklists, emergency alerts, staff administration). Laravel 12 / PHP 8.2 JSON API authenticated with Sanctum, plus a Vite frontend. Code comments, API messages and the README are in Spanish; keep that convention.
+SISCOM-UNET: communication and incident-reporting system for the UNET university security staff. It has two clients:
 
-Much of what the README describes (Reverb WebSockets, chat, reports, tasks, alerts) exists only as database migrations so far. What is implemented: login/logout, and admin CRUD over guards (`users`).
+- **Flutter mobile app for guards** (separate repo, not here). It consumes the JSON API in `routes/api.php` with Sanctum tokens and real-time events over Laravel Reverb.
+- **Web panel for the supervisor** under `/admin`. Blade views in `resources/views/admin/` use Bootstrap 5, Chart.js and SweetAlert2 loaded from CDNs (not Vite/Tailwind).
+
+Laravel 12 / PHP 8.2+ (dev machine runs 8.5). Code comments, API messages and docs are in Spanish; keep that convention.
 
 **`order.md`** (repo root) is the project's annotated file tree. Whenever you add, remove, rename or substantially change the purpose of a file, update `order.md` in the same change.
 
@@ -18,31 +21,37 @@ cp .env.example .env && php artisan key:generate
 php artisan migrate --seed
 
 composer dev          # serve + queue:listen + pail logs + vite, concurrently
-php artisan serve     # API only
-npm run build         # production frontend build
+php artisan serve     # web panel + API on :8000
+php artisan reverb:start   # WebSocket server on :8080 (needed for chat/emergency events when BROADCAST_CONNECTION=reverb)
+node proxy.cjs        # optional: :3000 proxy (HTTP→8000, WS→8080) for the Serveo tunnel
 
 composer test                                   # config:clear + php artisan test
 php artisan test --filter=ExampleTest           # single test class/method
-php artisan test tests/Feature/ExampleTest.php  # single file
-
-./vendor/bin/pint     # code style (Laravel Pint)
+./vendor/bin/pint     # code style
 ```
 
-Tests use PHPUnit 11 (not Pest) with in-memory SQLite (see `phpunit.xml`). `.env.example` defaults to SQLite; the README targets MySQL/MariaDB.
+Tests use PHPUnit 11 with in-memory SQLite (`phpunit.xml`). Production/dev DB is MySQL; code must also work on SQLite (see `ActivityController` for the driver check).
+
+No admin is seeded. Create one with `php artisan tinker`: `App\Models\Admin::create([...])`.
 
 ## Architecture
 
-**Two separate authenticatable models, one login endpoint.** `App\Models\Admin` (table `admins`) and `App\Models\User` (table `users`, the guards) both extend `Authenticatable` and use `HasApiTokens`. `Api\Auth\LoginController@login` checks `admins` first, then `users`, and returns `{token, user, role}` with `role` = `admin` or `guard`. There is no separate auth guard for admins in `config/auth.php`; `auth:sanctum` resolves whichever model owns the token (polymorphic `personal_access_tokens`).
+**Two user models, two auth mechanisms.**
+- `Admin` (table `admins`) = supervisor. `User` (table `users`, `role` = `guardia`, `shift` = Mañana/Tarde/Noche) = guard. IDs of the two tables overlap, so never compare IDs across them; check `instanceof` instead.
+- API: `POST /api/login` tries `admins` then `users` and issues a Sanctum token with ability `supervisor` or `guard`. The `sanctum` guard in `config/auth.php` deliberately has **no provider**: with `provider => users`, Sanctum rejects Admin tokens.
+- Web panel: separate session guard `admin_web` (provider `admins`). Login is at `/admin/login` (`WebLoginController`) and is CSRF-exempt in `bootstrap/app.php`.
 
-**Authorization checks the model class.** `UserPolicy` methods take any `Authenticatable` and return `$user instanceof Admin`. Don't type-hint `Admin $admin` in policies: Laravel still calls the method with a `User`, which throws a TypeError (500) instead of a 403. "Admins only" is enforced this way: the `admin` route group in `routes/api.php` uses `can:viewAny,App\Models\User`, and the policy is registered via `Gate::policy` in `AppServiceProvider::boot()`. `UserController::destroy` has no `authorize()` call of its own and relies only on the group middleware.
+**API authorization (`routes/api.php`).** Everything except `/login` is inside `auth:sanctum`. Role-specific groups use Sanctum's `abilities:supervisor` / `abilities:guard` middleware (aliases registered in `bootstrap/app.php`). Controllers take the acting user from `$request->user()`. **Never accept `user_id`/`email` from the request body to identify the caller**; the imported code originally did this and it allowed impersonation.
 
-**Guard creation requires an invite code.** `UserController@store` checks a hardcoded `INVITE-GUARD-2025` and stores it in `users.code`.
+**Real time.** `MessageSent` → private channel `guardians-chat`; `NewEmergencyTaskAssigned` (fired from `EmergencyAdminController@assignTask`) → private channel `user.{guardId}`. Channel rules are in `routes/channels.php`. The Flutter app authorizes via `POST /api/broadcasting/auth` with its Bearer token. `routes/api.php` already has the `/api` prefix, so don't add `prefix => 'api'` to `Broadcast::routes`. The `channels:` entry in `bootstrap/app.php` also registers the default session-based `/broadcasting/auth`.
 
-**Domain tables** (migrations dated `2025_09_14_*`, no models yet): `messages` (sender/receiver → users, `media_url`), `reports` (user, type, JSON `location`, status pending/resolved), `tasks` (`assigned_to` → users, status pending/completed), `alerts` (user, JSON `location`, `destination`, status pending/attended/ignored), `posts` (`author_id` → **admins**).
+**Domain flow.** A guard sends a panic alert (`POST /api/emergencies`), and only one emergency can be active (`reported`/`in_progress`). The supervisor sees it in `/admin/emergencies` and assigns it to a guard. That creates a `Task` with `priority=high` and `emergency_id`, marks the emergency `in_progress` and broadcasts to that guard. Resolving sets `resolved` + `attended_at`. The `alerts` and `posts` tables are legacy/unused.
 
-**Manual test UI:** `resources/views/test-admin.blade.php` (served at `/test-admin`) is a test panel that uses axios against `/api/login` and `/api/admin/users` with the Bearer token.
+**Tunnel setup.** The project was run behind Serveo/localtunnel for the mobile app. `AppServiceProvider` forces https URLs only when `APP_URL` starts with `https://`. `SESSION_DOMAIN` must match the host you browse with, or the panel login won't stick.
 
-## Known quirks (check before relying on them)
+## Gotchas
 
-- `DatabaseSeeder` only creates a test `User` (guard). No admin is seeded, so you have to insert one manually (e.g. via `php artisan tinker`) to use the admin endpoints.
-- The README mentions Bootstrap, but `package.json` actually uses Tailwind CSS 4 through `@tailwindcss/vite`.
+- Route order matters for literal segments next to `{param}` routes (e.g. `tasks/clear-all` must be declared before `tasks/{task}`).
+- `tasks.description` is NOT NULL even though the API treats it as optional (`TaskController` stores `''`).
+- With `REVERB_SERVER_PATH=/socket`, Laravel's server-side publish to Reverb fails with "Pusher error: Not found". The Pusher PHP SDK resolves `apps/...` against a base URL without a trailing slash and drops `/socket`. It works with an empty path.
+- `.env` is unreadable inside Claude Code's sandbox. Run artisan with explicit env vars (e.g. `APP_KEY`, `DB_*`), or tests that boot the app fail with MissingAppKeyException.
