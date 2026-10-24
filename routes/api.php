@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\EmergencyContactController;
 use App\Http\Controllers\Api\EmergencyController;
 use App\Http\Controllers\Api\TaskController;
+use App\Models\Admin;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Http\Request;
 
@@ -25,8 +26,13 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 // Los tokens llevan la habilidad 'supervisor' (Admin) o 'guard' (User), asignada en LoginController.
 Route::middleware('auth:sanctum')->group(function () {
 
+    // Perfil. 'role' se devuelve igual que en /login ('supervisor' o 'guard'), que es lo que espera la app;
+    // en la BD users.role vale 'guardia' y admins no tiene columna role.
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        $user = $request->user();
+        $user->role = $user instanceof Admin ? 'supervisor' : 'guard';
+
+        return $user;
     });
     Route::post('/logout', [LoginController::class, 'logout']);
 
@@ -43,9 +49,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- SOLO GUARDIA ---
     Route::middleware('abilities:guard')->group(function () {
-        // Mensajes (Chat)
-        Route::post('/messages', [MessageController::class, 'store']);
-
         // Reportes
         Route::post('/reports', [ReportController::class, 'store']);
 
@@ -53,12 +56,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/tasks', [TaskController::class, 'index']);
         Route::post('/tasks', [TaskController::class, 'store']);
         Route::put('/tasks/{id}', [TaskController::class, 'update']);
+        Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);
 
         // Emergencias
         Route::post('/emergencies', [EmergencyController::class, 'store']);
     });
 
     // --- SUPERVISOR Y GUARDIA ---
+    // Chat: messages.user_id (guardia) o messages.admin_id (supervisor)
+    Route::post('/messages', [MessageController::class, 'store']);
     Route::get('/messages', [MessageController::class, 'index']);
     Route::get('/messages/{id}', [MessageController::class, 'show']);
     Route::get('/reports/{id}', [ReportController::class, 'show']);

@@ -21,9 +21,9 @@ SISCOM-UNET/
 │   │   │   ├── Api/                            # API para la app móvil Flutter (Sanctum)
 │   │   │   │   ├── Auth/LoginController.php    # login (admin → 'supervisor', user → 'guard') y logout
 │   │   │   │   ├── UserController.php          # Guardias: listar/crear/borrar (supervisor), ver detalle
-│   │   │   │   ├── MessageController.php       # Chat: enviar (texto/archivo) y leer historial
+│   │   │   │   ├── MessageController.php       # Chat (guardias y supervisores): enviar (texto/archivo) y leer historial
 │   │   │   │   ├── ReportController.php        # Reportes de incidentes con ubicación y archivo
-│   │   │   │   ├── TaskController.php          # Tareas propias del guardia: listar, crear, completar
+│   │   │   │   ├── TaskController.php          # Tareas propias del guardia: listar, crear, completar, borrar
 │   │   │   │   ├── EmergencyController.php     # Botón de pánico (una emergencia activa a la vez)
 │   │   │   │   ├── EmergencyContactController.php # Contactos de emergencia
 │   │   │   │   └── ActivityController.php      # Feed de actividad (reportes, mensajes, guardias nuevos)
@@ -34,7 +34,7 @@ SISCOM-UNET/
 │   ├── Models/
 │   │   ├── Admin.php                           # Supervisores (tabla admins)
 │   │   ├── User.php                            # Guardias (tabla users): role, shift, reports(), tasks()
-│   │   ├── Message.php                         # Mensaje del chat grupal
+│   │   ├── Message.php                         # Mensaje del chat grupal; autor guardia (user_id) o supervisor (admin_id)
 │   │   ├── Report.php                          # Reporte de incidente
 │   │   ├── Task.php                            # Tarea asignada (puede venir de una emergencia)
 │   │   ├── Emergency.php                       # Emergencia (reportada por guardia o por el admin)
@@ -68,7 +68,8 @@ SISCOM-UNET/
 │   │   ├── 2025_10_09_124517_add_priority_to_tasks_table.php          # tasks.priority y tasks.emergency_id
 │   │   ├── 2025_10_09_124711_alter_emergencies_for_admin_and_tracking_fields.php # user_id nullable, attended_at
 │   │   ├── 2025_10_10_063002_add_shift_to_users_table.php             # users.shift (Mañana/Tarde/Noche)
-│   │   └── 2025_10_23_000000_make_shift_nullable_on_users_table.php   # shift nullable en bases existentes
+│   │   ├── 2025_10_23_000000_make_shift_nullable_on_users_table.php   # shift nullable en bases existentes
+│   │   └── 2025_10_23_000001_add_admin_id_to_messages_table.php       # Autor supervisor en el chat (user_id o admin_id)
 │   └── seeders/
 │       └── DatabaseSeeder.php                  # Crea un guardia de prueba (test@example.com)
 ├── public/

@@ -33,11 +33,9 @@ class MessageSent implements ShouldBroadcast
             'content' => $this->message->content,
             'file_path' => $this->message->file_path,
             'file_type' => $this->message->file_type,
-            'user' => [
-                'id' => $this->message->user->id,
-                'name' => $this->message->user->name,
-                'email' => $this->message->user->email,
-            ],
+            'user_id' => $this->message->user_id,
+            'admin_id' => $this->message->admin_id,
+            'user' => $this->message->authorData(), // guardia o supervisor, con 'role'
             'created_at' => $this->message->created_at->toIso8601String(),
         ];
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -26,16 +27,19 @@ class MessageController extends Controller
             $filePath = $request->file('file')->store('messages', 'public');
         }
 
-        // 3. Crear el mensaje
+        // 3. Crear el mensaje (el autor puede ser un guardia o un supervisor)
+        $author = $request->user();
+
         $message = Message::create([
-            'user_id' => $request->user()->id,
+            'user_id' => $author instanceof Admin ? null : $author->id,
+            'admin_id' => $author instanceof Admin ? $author->id : null,
             'content' => $request->content, 
             'file_path' => $filePath, // 🚨 CRÍTICO: Guarda la ruta del archivo
             'file_type' => $request->file_type,
         ]);
 
         // 4. Broadcast
-        $message->load('user');
+        $message->load('user', 'admin');
 
         broadcast(new MessageSent($message));
 
@@ -45,7 +49,7 @@ class MessageController extends Controller
     // Cargar historial de mensajes
     public function index()
     {
-        $messages = Message::with('user')
+        $messages = Message::with('user', 'admin')
             ->orderBy('created_at', 'asc')
             ->limit(50) 
             ->get();
@@ -56,13 +60,8 @@ class MessageController extends Controller
     // 🚨 MÉTODO SHOW: Muestra el detalle del mensaje
     public function show($id)
     {
-        // Cargar mensaje y la relación 'user' (que contiene el email)
-        $message = Message::with('user')->findOrFail($id);
-        
-        // Ocultar datos sensibles/innecesarios del usuario
-        if ($message->user) {
-            $message->user->makeHidden(['password', 'remember_token', 'api_token', 'code']);
-        }
+        // Cargar mensaje y su autor; Message::toArray solo expone id, name, email y role del autor
+        $message = Message::with('user', 'admin')->findOrFail($id);
 
         return response()->json($message);
     }

@@ -70,4 +70,21 @@ class TaskController extends Controller
 
         return response()->json($task);
     }
+
+    // Eliminar una tarea propia
+    public function destroy(Request $request, $id)
+    {
+        $task = Task::where('assigned_to', $request->user()->id)
+                    ->where('id', $id)
+                    ->firstOrFail();
+
+        // Las tareas que vienen de una emergencia las asigna el supervisor: el guardia no puede borrarlas
+        if ($task->emergency_id) {
+            return response()->json(['message' => 'No puedes eliminar una tarea asignada por una emergencia.'], 403);
+        }
+
+        $task->delete();
+
+        return response()->json(['message' => 'Tarea eliminada correctamente']);
+    }
 }
