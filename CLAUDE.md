@@ -11,6 +11,8 @@ SISCOM-UNET: communication and incident-reporting system for the UNET university
 
 Laravel 12 / PHP 8.2+ (dev machine runs 8.5). Code comments, API messages and docs are in Spanish; keep that convention.
 
+**`PENDIENTE.md`** (repo root) is the to-do list: Flutter changes, the Flutter test plan, backend gaps and deploy config. Check it when resuming work, and tick items off or update it when they're done.
+
 **`order.md`** (repo root) is the project's annotated file tree. Whenever you add, remove, rename or substantially change the purpose of a file, update `order.md` in the same change.
 
 ## Commands

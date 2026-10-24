@@ -113,5 +113,6 @@ SISCOM-UNET/
 ├── .env.example
 ├── CLAUDE.md                                   # Guía para Claude Code
 ├── order.md                                    # Este archivo
+├── PENDIENTE.md                                # Pendientes: cambios y pruebas con la app Flutter, backend, despliegue, portafolio
 └── README.md
 ```
