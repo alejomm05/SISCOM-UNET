@@ -3,18 +3,18 @@
 namespace App\Policies;
 
 use App\Models\Admin;
-use Illuminate\Contracts\Auth\Authenticatable;
+use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
-    // El token puede pertenecer a un Admin o a un User (guardia); solo los admins pasan
-    public function viewAny(Authenticatable $user): bool
+    public function viewAny(Admin $admin): bool
     {
-        return $user instanceof Admin;
+        return true; // Solo admins pueden ver/gestionar usuarios
     }
 
-    public function create(Authenticatable $user): bool
+    public function create(Admin $admin): bool
     {
-        return $user instanceof Admin;
+        return true;
     }
 }

@@ -17,10 +17,12 @@ return [
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
         '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
+        'localhost,127.0.0.1,127.0.0.1:8000,::1,loca.lt,serveo.net',
         Sanctum::currentApplicationUrlWithPort(),
         // Sanctum::currentRequestHost(),
     ))),
+
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -34,7 +36,7 @@ return [
     |
     */
 
-    'guard' => ['web'],
+    'guard' => ['web', 'sanctum'],
 
     /*
     |--------------------------------------------------------------------------
@@ -81,4 +83,5 @@ return [
         'validate_csrf_token' => Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
     ],
 
+    
 ];
