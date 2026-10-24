@@ -24,6 +24,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'admin/login',
         ]);
+
+        // Habilidades de los tokens de Sanctum ('supervisor' o 'guard'), usadas en routes/api.php
+        $middleware->alias([
+            'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
+            'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+        ]);
         
         // NOTA: No necesitamos redefinir toda la pila de middlewares aquí.
         // Laravel usará sus valores predeterminados, pero con esta exclusión añadida.

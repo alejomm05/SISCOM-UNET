@@ -14,10 +14,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/test-admin', function () {
-    return view('test-admin');
-});
-
 Route::get('/login', function () {
     return redirect()->route('admin.login');
 })->name('login');
@@ -40,18 +36,19 @@ Route::middleware(['auth:admin_web'])->prefix('admin')->name('admin.')->group(fu
 
     // TAREAS (Historial, Asignación, Eliminación)
     Route::get('tasks/history', [TaskAdminController::class, 'history'])->name('tasks.history'); 
-    Route::post('tasks/assign', [TaskAdminController::class, 'assign'])->name('tasks.assign'); 
+    Route::post('tasks/assign', [TaskAdminController::class, 'assign'])->name('tasks.assign');
+    // Vaciar todas las tareas (Eliminación masiva).
+    // Debe ir ANTES de tasks/{task}, o 'clear-all' se toma como ID de tarea y da 404.
+    Route::delete('tasks/clear-all', [TaskAdminController::class, 'clearAll'])->name('tasks.clearAll');
     // Eliminar individualmente
-    Route::delete('tasks/{task}', [TaskAdminController::class, 'destroy'])->name('tasks.destroy'); 
-    // Vaciar todas las tareas (Eliminación masiva)
-    Route::delete('tasks/clear-all', [TaskAdminController::class, 'clearAll'])->name('tasks.clearAll'); 
+    Route::delete('tasks/{task}', [TaskAdminController::class, 'destroy'])->name('tasks.destroy');
 
     // REPORTES (Listado, Eliminación)
     Route::get('reports', [ReportAdminController::class, 'index'])->name('reports.index');
+    // Vaciar todos los reportes (Eliminación masiva). Debe ir ANTES de reports/{report}.
+    Route::delete('reports/clear-all', [ReportAdminController::class, 'clearAll'])->name('reports.clearAll');
     // Eliminar individualmente
     Route::delete('reports/{report}', [ReportAdminController::class, 'destroy'])->name('reports.destroy');
-    // Vaciar todos los reportes (Eliminación masiva)
-    Route::delete('reports/clear-all', [ReportAdminController::class, 'clearAll'])->name('reports.clearAll'); 
 
     // GESTIÓN DE CONTACTOS DE EMERGENCIA (CRUD)
     Route::resource('contacts', EmergencyContactAdminController::class)->except(['show']);

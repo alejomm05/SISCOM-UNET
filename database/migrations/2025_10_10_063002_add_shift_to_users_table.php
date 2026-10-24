@@ -13,7 +13,8 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             // Agrega la columna 'shift' después de 'password'. 
             // Usamos string para el nombre del turno (ej: 'Mañana', 'Noche').
-            $table->string('shift')->after('password'); 
+            // nullable: los guardias pueden no tener turno asignado (GuardiaController lo trata como opcional)
+            $table->string('shift')->nullable()->after('password');
         });
     }
 

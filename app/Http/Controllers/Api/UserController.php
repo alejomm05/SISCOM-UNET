@@ -10,18 +10,14 @@ use Illuminate\Http\JsonResponse; // Usar JsonResponse para respuestas consisten
 
 class UserController extends BaseController
 {
-    // Se ha eliminado: use AuthorizesRequests;
-    
+    // index, store y destroy solo son accesibles con un token de supervisor
+    // (middleware 'abilities:supervisor' en routes/api.php).
+
     /**
      * Muestra una lista de usuarios (guardias).
      */
     public function index(Request $request): JsonResponse
     {
-        // 🚨 VERIFICACIÓN DE ROL MANUAL: Si no hay usuario o no es supervisor, denegar acceso.
-        if ($request->user() === null || $request->user()->role !== 'supervisor') {
-            return response()->json(['message' => 'Acceso denegado. Solo el supervisor puede listar guardias.'], 403);
-        }
-
         // Obtener solo los usuarios con rol 'guardia' para esta pantalla de gestión.
         $users = User::where('role', 'guardia')
                      ->select('id', 'name', 'email', 'created_at')
@@ -35,11 +31,6 @@ class UserController extends BaseController
      */
     public function store(Request $request): JsonResponse
     {
-        // 🚨 VERIFICACIÓN DE ROL MANUAL: Solo Supervisor puede crear.
-        if ($request->user() === null || $request->user()->role !== 'supervisor') {
-            return response()->json(['message' => 'Acceso denegado. Solo el supervisor puede crear guardias.'], 403);
-        }
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
@@ -77,11 +68,6 @@ class UserController extends BaseController
      */
     public function destroy(Request $request, $id): JsonResponse
     {
-        // 🚨 VERIFICACIÓN DE ROL MANUAL: Solo Supervisor puede eliminar.
-        if ($request->user() === null || $request->user()->role !== 'supervisor') {
-            return response()->json(['message' => 'Acceso denegado. Solo el supervisor puede eliminar usuarios.'], 403);
-        }
-        
         $user = User::find($id);
 
         if (!$user) {

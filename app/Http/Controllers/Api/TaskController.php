@@ -12,13 +12,8 @@ class TaskController extends Controller
     // Listar tareas del usuario (Hoy y Futuras)
     public function index(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|integer|exists:users,id',
-            'email' => 'required|email|exists:users,email',
-        ]);
-
         $tasks = Task::with('user:id,name') // Incluimos la relación del usuario asignado (assigned_to)
-                     ->where('assigned_to', $request->user_id)
+                     ->where('assigned_to', $request->user()->id)
                      ->where('status', 'pending') 
                      ->where('due_date', '>=', now()->startOfDay())
                      ->orderBy('due_date', 'asc')
@@ -31,8 +26,6 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|integer|exists:users,id',
-            'email' => 'required|email|exists:users,email',
             'title' => 'required|string',
             'description' => 'nullable|string',
             'due_date' => 'required|date',
@@ -51,9 +44,9 @@ class TaskController extends Controller
         }
 
         $task = Task::create([
-            'assigned_to' => $request->user_id,
+            'assigned_to' => $request->user()->id,
             'title' => $request->title,
-            'description' => $request->description,
+            'description' => $request->description ?? '', // la columna es NOT NULL
             'due_date' => $dueDate, 
             'status' => 'pending',
             'priority' => 'normal', // Las tareas creadas por el guardia son normales
@@ -68,12 +61,8 @@ class TaskController extends Controller
     // Marcar como completada
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'user_id' => 'required|integer|exists:users,id',
-            'email' => 'required|email|exists:users,email',
-        ]);
-
-        $task = Task::where('assigned_to', $request->user_id)
+        // Solo puede completar sus propias tareas
+        $task = Task::where('assigned_to', $request->user()->id)
                     ->where('id', $id)
                     ->firstOrFail();
 

@@ -40,12 +40,14 @@ class EmergencyController extends Controller
         }
         
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
             'type' => 'required|string|max:255',
             'description' => 'nullable|string',
             'location' => 'nullable|string|max:255',
         ]);
-        
+
+        // El guardia que reporta sale del token, no del cuerpo
+        $validated['user_id'] = $request->user()->id;
+
         $emergency = Emergency::create($validated);
         
         // 🚨 NO se crea actividad aquí. La actividad se crea cuando se MARCA COMO RESUELTA

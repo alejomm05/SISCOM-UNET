@@ -11,9 +11,8 @@ class ReportController extends BaseController
 {
     public function store(Request $request)
     {
+        // El guardia que reporta sale del token, no del cuerpo
         $request->validate([
-            'user_id' => 'required|integer', 
-            'email' => 'required|email|exists:users,email', 
             'type' => 'required|in:sospechoso,daño,emergencia,otro',
             'description' => 'required|string',
             'location' => 'required|string',
@@ -28,7 +27,7 @@ class ReportController extends BaseController
         $locationJson = json_encode($request->location); 
         
         $report = Report::create([
-            'user_id' => $request->user_id, 
+            'user_id' => $request->user()->id,
             'type' => $request->type,
             'description' => $request->description,
             'location' => $locationJson,

@@ -40,13 +40,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // Sin 'provider': el token puede pertenecer a un Admin o a un User (guardia).
+        // Con provider => users, Sanctum rechazaría los tokens de los supervisores.
         'sanctum' => [
             'driver' => 'sanctum',
-            'provider' => 'users',
-        ],
-        'sanctum_admin' => [
-            'driver' => 'sanctum',
-            'provider' => 'admins',
         ],
         'admin_web' => [
             'driver' => 'session',

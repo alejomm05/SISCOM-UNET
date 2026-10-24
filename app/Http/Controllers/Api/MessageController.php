@@ -12,9 +12,8 @@ class MessageController extends Controller
 {
     public function store(Request $request)
     {
-        // 1. Validar entrada
+        // 1. Validar entrada (el autor sale del token, no del cuerpo)
         $request->validate([
-            'user_id' => 'required|integer|exists:users,id', 
             'content' => 'required_without:file|nullable|string|max:1000',
             'file' => 'required_without:content|nullable|file|mimes:jpg,jpeg,png,mp3,mp4,mov,webm|max:20480', // 20MB
             'file_type' => 'required_with:file|in:image,audio,video',
@@ -29,7 +28,7 @@ class MessageController extends Controller
 
         // 3. Crear el mensaje
         $message = Message::create([
-            'user_id' => $request->user_id, 
+            'user_id' => $request->user()->id,
             'content' => $request->content, 
             'file_path' => $filePath, // 🚨 CRÍTICO: Guarda la ruta del archivo
             'file_type' => $request->file_type,

@@ -23,7 +23,10 @@ class ActivityController extends Controller
 
         // 3. Consultar Creación de Usuarios (Avisos)
         // Usamos el campo 'name' como el contenido del aviso
-        $userCreations = User::select('id', DB::raw("CONCAT('Nuevo guardia: ', name) AS content"), 'created_at', DB::raw("'new_user' as type"), 'id as user_id')
+        // CONCAT no existe en SQLite (se usa ||); así funciona con MySQL y con SQLite
+        $content = DB::getDriverName() === 'sqlite' ? "'Nuevo guardia: ' || name" : "CONCAT('Nuevo guardia: ', name)";
+
+        $userCreations = User::select('id', DB::raw("$content AS content"), 'created_at', DB::raw("'new_user' as type"), 'id as user_id')
             ->limit(50); // Limite inicial
 
         // 4. Unir las consultas y ordenar

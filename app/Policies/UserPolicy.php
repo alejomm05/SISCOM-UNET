@@ -3,18 +3,19 @@
 namespace App\Policies;
 
 use App\Models\Admin;
-use App\Models\User;
-use Illuminate\Auth\Access\Response;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 class UserPolicy
 {
-    public function viewAny(Admin $admin): bool
+    // El usuario puede ser un Admin o un User (guardia); solo los admins pasan.
+    // No tipar como Admin: Laravel llamaría igual con un User y daría TypeError (500) en vez de 403.
+    public function viewAny(Authenticatable $user): bool
     {
-        return true; // Solo admins pueden ver/gestionar usuarios
+        return $user instanceof Admin;
     }
 
-    public function create(Admin $admin): bool
+    public function create(Authenticatable $user): bool
     {
-        return true;
+        return $user instanceof Admin;
     }
 }

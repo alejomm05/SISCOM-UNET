@@ -13,8 +13,9 @@ Broadcast::channel('guardians-chat', function ($user) {
 
 Broadcast::channel('user.{userId}', function ($user, $userId) {
     
-    // Si el usuario autenticado (obtenido del token de Flutter) no existe o no tiene ID
-    if (!$user) {
+    // Si el usuario autenticado (obtenido del token de Flutter) no existe o no es un guardia.
+    // Admin y User tienen IDs independientes: sin este chequeo el admin #1 podría escuchar al guardia #1.
+    if (!$user instanceof User) {
         return false;
     }
     
