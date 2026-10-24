@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SISCOM-UNET: communication and incident-reporting system for the UNET university security staff. It has two clients:
 
-- **Flutter mobile app for guards** (separate repo, not here). It consumes the JSON API in `routes/api.php` with Sanctum tokens and real-time events over Laravel Reverb.
+- **Flutter mobile app** (separate repo at `~/proyectos/siscom_unet_flutter`; all HTTP calls are in `lib/services/api_service.dart`, Reverb in `lib/services/pusher_service.dart`). It consumes the JSON API in `routes/api.php` with Sanctum tokens and real-time events over Laravel Reverb. **Both guards and supervisors use the app**, and supervisors also use the web panel. Any API change must be checked against `api_service.dart`.
 - **Web panel for the supervisor** under `/admin`. Blade views in `resources/views/admin/` use Bootstrap 5, Chart.js and SweetAlert2 loaded from CDNs (not Vite/Tailwind).
 
 Laravel 12 / PHP 8.2+ (dev machine runs 8.5). Code comments, API messages and docs are in Spanish; keep that convention.
@@ -50,6 +50,9 @@ No admin is seeded. Create one with `php artisan tinker`: `App\Models\Admin::cre
 **Tunnel setup.** The project was run behind Serveo/localtunnel for the mobile app. `AppServiceProvider` forces https URLs only when `APP_URL` starts with `https://`. `SESSION_DOMAIN` must match the host you browse with, or the panel login won't stick.
 
 ## Gotchas
+
+- **Known gap:** chat, reports, tasks and emergencies in the API are guard-only (`abilities:guard`) because `messages`/`reports`/`emergencies.user_id` reference `users`, not `admins`. Supervisors using the app get 403 there. Supporting them needs a schema change (e.g. polymorphic author), not just relaxing the middleware. Relaxing it would bring back the bug where an Admin's ID gets saved as a guard's ID.
+- **Flutter app out of sync (pending):** most `ApiService` methods don't send the Bearer token, so they get 401 since the API was secured. The app also calls `DELETE /api/tasks/{id}`, which doesn't exist. The app's Pusher client connects without a path prefix, so `REVERB_SERVER_PATH` must be empty.
 
 - Route order matters for literal segments next to `{param}` routes (e.g. `tasks/clear-all` must be declared before `tasks/{task}`).
 - `tasks.description` is NOT NULL even though the API treats it as optional (`TaskController` stores `''`).
