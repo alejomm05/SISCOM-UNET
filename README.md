@@ -1,199 +1,139 @@
 # SISCOM-UNET
 ### Sistema de Comunicación y Reporte para Seguridad Universitaria
 
-SISCOM-UNET es una plataforma de software diseñada para digitalizar, centralizar y optimizar la gestión operativa y la comunicación del cuerpo de seguridad de la Universidad Nacional Experimental del Táchira (UNET). El sistema sustituye los esquemas de radiocomunicación tradicionales por una arquitectura distribuida en tiempo real que mejora la documentación de incidencias y minimiza el tiempo de respuesta ante emergencias en el campus.
+SISCOM-UNET digitaliza la comunicación y la gestión operativa del cuerpo de seguridad de la Universidad Nacional Experimental del Táchira (UNET). Reemplaza la coordinación por radio con un chat en tiempo real, reportes de incidentes con evidencia, tareas asignadas y un botón de emergencia. Así quedan documentadas las incidencias y baja el tiempo de respuesta en el campus.
+
+Este repositorio contiene el **backend (API + panel web del supervisor)**. La **app móvil** de guardias y supervisores está hecha en Flutter, en un repositorio aparte, y consume la API de este proyecto.
 
 ---
 
-## Módulos del Sistema
+## Módulos
 
-El panel administrativo web implementa las siguientes capacidades operativas:
-
-*   **Comunicación en Tiempo Real:** Chat bidireccional e interactivo con soporte para transmisiones de texto y adjuntos multimedia (imágenes, audio y video) procesados mediante sockets.
-*   **Gestión y Reporte de Incidentes:** Formulario de registro de situaciones irregulares que incluye captura de geolocalización, evidencias digitales y auditoría de estados de resolución.
-*   **Control de Tareas y Checklists:** Asignación, seguimiento y verificación de hojas de ruta diarias (apertura de accesos, monitoreo de infraestructura) destinadas al personal de guardia.
-*   **Protocolos de Emergencia:** Recepción prioritaria de alertas críticas emitidas desde dispositivos móviles y coordinación de enlace operativo con organismos de rescate públicos (Protección Civil).
-*   **Administración de Personal:** Control de perfiles de usuario, roles, activación/desactivación de cuentas y asignación estructurada de turnos de vigilancia.
-
----
-
-## Arquitectura y Stack Tecnológico
-
-El proyecto ha sido estructurado bajo altos estándares de desacoplamiento, escalabilidad y seguridad:
-
-*   **Backend:** PHP 8.2+ y Laravel 12.x bajo el patrón arquitectónico Modelo-Vista-Controlador (MVC).
-*   **Seguridad y Control de Acceso:** Autenticación basada en API mediante Laravel Sanctum. Implementación de Políticas de Autorización (Laravel Policies) acopladas a controladores y rutas mediante middlewares específicos para restringir privilegios críticos a nivel de modelo.
-*   **Base de Datos:** MySQL con gestión de colas de procesos (Queue Jobs) para la ejecución asíncrona de tareas pesadas.
-*   **Tiempo Real:** Laravel Reverb como servidor de WebSockets nativo.
-*   **Frontend Web:** JavaScript moderno, Bootstrap y compilación optimizada a través de Vite.
+| Módulo | App móvil (API) | Panel web del supervisor (`/admin`) |
+|---|---|---|
+| **Chat grupal** | Mensajes de texto, imagen, audio y video en tiempo real. Escriben guardias y supervisores | — |
+| **Reportes de incidentes** | El guardia reporta tipo, descripción, ubicación y archivo adjunto | Listado paginado, eliminar y vaciar historial (con sus archivos) |
+| **Tareas** | El guardia ve sus tareas pendientes y puede crearlas, completarlas y eliminarlas | Asignar tareas con prioridad, historial, eliminar y vaciar |
+| **Emergencias** | Botón de pánico (solo una emergencia activa a la vez) y consulta de la emergencia activa | Ver, crear, resolver y asignar a un guardia como tarea de alta prioridad, con aviso en tiempo real |
+| **Contactos de emergencia** | Consulta para todos; el supervisor también crea, edita y elimina | CRUD con enlace directo a WhatsApp |
+| **Guardias** | El supervisor lista, crea y elimina | CRUD, turnos (Mañana/Tarde/Noche) y cuántos guardias están en turno ahora |
+| **Actividad** | Feed con reportes, mensajes y guardias nuevos | Dashboard con estadísticas y gráficos |
 
 ---
 
-## Requisitos de Sistema
+## Arquitectura
 
-*   PHP >= 8.2
-*   Composer >= 2.x
-*   Node.js >= 18.x
-*   NPM >= 9.x
-*   Motor de base de datos MySQL o MariaDB
+- **Backend:** PHP 8.2+ y Laravel 12.
+- **Dos tipos de usuario:**
+  - **Supervisores** (tabla `admins`): usan el panel web y la app.
+  - **Guardias** (tabla `users`): usan la app.
+- **Autenticación de la API:** Laravel Sanctum.
+  - `POST /api/login` emite un token con la habilidad `supervisor` o `guard`.
+  - Todas las demás rutas exigen el token (`Authorization: Bearer ...`).
+  - Las rutas exclusivas de cada rol se protegen con `abilities:supervisor` y `abilities:guard`.
+  - El usuario siempre se toma del token, nunca de datos enviados en el cuerpo del pedido.
+- **Autenticación del panel web:** sesión propia (guard `admin_web`), separada de la API.
+- **Tiempo real:** Laravel Reverb (WebSockets compatibles con Pusher).
+  - `guardians-chat`: chat grupal.
+  - `user.{id}`: avisos de tareas de emergencia para cada guardia.
+  - La app autoriza los canales privados en `POST /api/broadcasting/auth` con su token.
+- **Base de datos:** MySQL/MariaDB. Los tests corren en SQLite en memoria.
+- **Panel web:** vistas Blade con Bootstrap 5, Chart.js y SweetAlert2 cargados desde CDN.
+- **Acceso remoto en desarrollo:** `proxy.cjs` publica la API (`:8000`) y Reverb (`:8080`) en un solo puerto (`:3000`), para exponerlos con un túnel (p. ej. Serveo) y probar la app desde un teléfono.
+
+El mapa comentado de todos los archivos está en [`order.md`](order.md).
 
 ---
 
-## Instrucciones de Instalación y Configuración
+## Requisitos
 
-Siga las siguientes instrucciones para desplegar un entorno de desarrollo local:
+- PHP >= 8.2 y Composer 2
+- Node.js >= 18 y NPM
+- MySQL o MariaDB
 
-### 1. Clonar el repositorio y configurar dependencias de PHP
+---
+
+## Instalación
+
 ```bash
 git clone https://github.com/alejomm05/SISCOM-UNET.git
 cd SISCOM-UNET
 composer install
-```
+npm install
 
-### 2. Configurar el entorno
-```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-### 3. Ejecutar migraciones y seeders
+Configura en `.env` la base de datos (`DB_*`) y Reverb:
+
+```dotenv
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=siscom
+REVERB_APP_KEY=una-clave
+REVERB_APP_SECRET=un-secreto
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8080
+REVERB_SCHEME=http
+REVERB_SERVER_PATH=
+```
+
+`REVERB_SERVER_PATH` debe quedar **vacío**: el cliente de la app se conecta sin prefijo, y con `/socket` Laravel tampoco logra publicar eventos en Reverb.
+
+Crea las tablas y un supervisor (el seeder solo crea un guardia de prueba, `test@example.com` / `password`):
+
 ```bash
 php artisan migrate --seed
-```
-
-### 4. Dependencias de frontend
-```bash
-npm install
-npm run dev
-```
-
-### 5. Iniciar servidor
-```bash
-php artisan serve
+php artisan tinker
+>>> App\Models\Admin::create(['name' => 'Supervisor', 'email' => 'supervisor@unet.edu.ve', 'password' => bcrypt('cambia-esta-clave')]);
 ```
 
 ---
 
-## Estructura de Archivos y Directorios del Proyecto
+## Ejecución
 
-```
-SISCOM-UNET/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── Api/
-│   │   │   │   ├── Admin/
-│   │   │   │   │   └── UserController.php
-│   │   │   │   └── Auth/
-│   │   │   │       └── LoginController.php
-│   │   │   └── Controller.php
-│   │   └── (Middleware, Requests, Resources — según necesidad)
-│   ├── Models/
-│   │   ├── Admin.php
-│   │   └── User.php
-│   ├── Policies/
-│   │   └── UserPolicy.php
-│   └── Providers/
-│       └── AppServiceProvider.php
-├── bootstrap/
-│   ├── cache/
-│   │   ├── .gitignore
-│   │   ├── packages.php
-│   │   └── services.php
-│   ├── app.php
-│   └── providers.php
-├── config/
-│   ├── app.php
-│   ├── auth.php
-│   ├── cache.php
-│   ├── database.php
-│   ├── filesystems.php
-│   ├── logging.php
-│   ├── mail.php
-│   ├── queue.php
-│   ├── sanctum.php
-│   ├── services.php
-│   └── session.php
-├── database/
-│   ├── factories/
-│   │   └── UserFactory.php
-│   ├── migrations/
-│   │   ├── 0001_01_01_000000_create_users_table.php
-│   │   ├── 0001_01_01_000001_create_cache_table.php
-│   │   ├── 0001_01_01_000002_create_jobs_table.php
-│   │   ├── 2025_09_14_205036_create_admins_table.php
-│   │   ├── 2025_09_14_205100_create_messages_table.php
-│   │   ├── 2025_09_14_205114_create_reports_table.php
-│   │   ├── 2025_09_14_205129_create_tasks_table.php
-│   │   ├── 2025_09_14_205138_create_alerts_table.php
-│   │   ├── 2025_09_14_205323_create_posts_table.php
-│   │   ├── 2025_09_14_220747_create_personal_access_tokens_table.php
-│   │   └── 2025_09_14_220903_create_admins_table.php
-│   ├── seeders/
-│   │   └── DatabaseSeeder.php
-│   ├── .gitignore
-│   └── database.sqlite
-├── public/
-│   ├── build/
-│   │   └── assets/
-│   ├── .htaccess
-│   ├── favicon.ico
-│   ├── hot
-│   ├── index.php
-│   └── robots.txt
-├── resources/
-│   ├── css/
-│   │   └── app.css
-│   ├── js/
-│   │   ├── app.js
-│   │   └── bootstrap.js
-│   └── views/
-│       ├── test-admin.blade.php
-│       └── welcome.blade.php
-├── routes/
-│   ├── api.php
-│   ├── console.php
-│   └── web.php
-├── storage/
-│   ├── app/
-│   │   ├── private/
-│   │   ├── public/
-│   │   │   ├── messages/          # Adjuntos de chat (imágenes, audio, video)
-│   │   │   └── reports/           # Evidencias digitales de incidentes
-│   │   └── .gitignore
-│   ├── framework/
-│   └── logs/
-├── tests/
-│   ├── Feature/
-│   │   └── ExampleTest.php
-│   ├── Unit/
-│   │   └── ExampleTest.php
-│   └── TestCase.php
-├── .editorconfig
-├── .env
-├── .env.example
-├── .gitattributes
-├── .gitignore
-├── artisan
-├── composer.json
-├── composer.lock
-├── package.json
-├── phpunit.xml
-├── vite.config.js
-└── README.md
+```bash
+composer dev            # servidor, cola, logs y Vite al mismo tiempo
+php artisan reverb:start  # servidor de WebSockets (en otra terminal)
 ```
 
-### Descripción de Directorios Clave
+- Panel web: http://127.0.0.1:8000/admin/login
+- API: http://127.0.0.1:8000/api
 
-| Directorio | Propósito |
+Los eventos en tiempo real se envían a través de la **cola**: sin `php artisan queue:work` (que `composer dev` ya incluye), los mensajes se guardan pero no llegan al instante.
+
+Para probar la app desde un teléfono: levanta `node proxy.cjs`, expón el puerto 3000 con un túnel y ajusta `APP_URL` (con `https://`), `SESSION_DOMAIN` y `SANCTUM_STATEFUL_DOMAINS` al dominio del túnel.
+
+---
+
+## API
+
+| Método y ruta | Quién |
 |---|---|
-| `app/Http/Controllers/Api` | Controladores de la API REST (autenticación y administración). |
-| `app/Models` | Modelos Eloquent que representan las entidades del dominio (Usuarios, Administradores). |
-| `app/Policies` | Políticas de autorización que restringen acciones por rol. |
-| `config/` | Archivos de configuración de los servicios de Laravel (BD, cache, colas, Sanctum). |
-| `database/migrations` | Esquemas de las tablas del sistema (usuarios, mensajes, reportes, tareas, alertas, publicaciones). |
-| `routes/` | Definición de rutas web, API y consola. |
-| `resources/views` | Vistas Blade del panel administrativo. |
-| `storage/app/public/messages` | Almacenamiento de archivos multimedia adjuntos en el chat. |
-| `storage/app/public/reports` | Almacenamiento de evidencias digitales de los reportes de incidentes. |
-| `tests/` | Pruebas unitarias y de funcionalidad (PHPUnit). |
+| `POST /api/login` | Público |
+| `POST /api/logout`, `GET /api/user` | Autenticado |
+| `GET/POST /api/messages`, `GET /api/messages/{id}` | Supervisor y guardia |
+| `GET /api/reports/{id}`, `GET /api/activities`, `GET /api/users/{id}` | Supervisor y guardia |
+| `GET /api/emergencies/active`, `GET /api/emergency-contacts` | Supervisor y guardia |
+| `POST /api/reports`, `POST /api/emergencies` | Guardia |
+| `GET/POST /api/tasks`, `PUT/DELETE /api/tasks/{id}` | Guardia (solo sus tareas) |
+| `GET/POST /api/users`, `DELETE /api/users/{id}` | Supervisor |
+| `POST/PUT/DELETE /api/emergency-contacts/...` | Supervisor |
+| `POST /api/broadcasting/auth` | Autenticado (canales privados) |
+
+---
+
+## Tests
+
+```bash
+composer test
+php artisan test --filter=NombreDelTest
+```
+
+---
+
+## Limitaciones conocidas
+
+- Los reportes, las tareas y las emergencias desde la app son solo para guardias; un supervisor recibe 403. Desde el panel web el supervisor sí gestiona todo.
+- La app Flutter debe enviar el token en todas las llamadas para funcionar con esta versión de la API.
+- El código de invitación para crear guardias desde la API está fijo en `Api/UserController`.
