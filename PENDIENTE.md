@@ -117,7 +117,9 @@ Hacerlas con el backend de `main` y Reverb corriendo (ver "Configuración" más 
 
 ## 5. Portafolio y CV
 
-- [ ] Regenerar `resume-ES.pdf` y `resume-EN.pdf` con el texto corregido de SISCOM (el del sitio ya está actualizado en `messages/*.json`). Quitar "Laravel Policies", "Queue Jobs para tareas pesadas", "Vite" y "arquitectura distribuida".
-- [ ] `public/resume.pdf` (no está enlazado, pero es público) repite una línea de SISCOM dentro de la sección de Lockers. Corregirlo o borrarlo.
+- [x] Regenerar `resume-ES.pdf` y `resume-EN.pdf` con el texto corregido de SISCOM (portafolio, commit `9803eec`, 24/10/2026).
+- [ ] Detalles de formato del CV: falta ":" tras "Stack" en el ES, las viñetas de LockersUNET en el EN tienen el "-" pegado y el título de SISCOM no menciona Flutter.
+- [ ] El texto de SISCOM en el portafolio (`messages/*.json`) dice "Construí el backend y el panel web"; actualizarlo para incluir la app Flutter, que también es propia.
+- [x] `public/resume.pdf` (sin enlazar, con una línea de SISCOM repetida) eliminado.
 - [ ] Los archivos `content/projects/*.mdx` y `_registry.ts` del portafolio están vacíos, aunque el README del portafolio los describe como los casos de estudio.
 - [ ] Cuando la app Flutter funcione, agregar capturas de la app a la galería (`public/images/projects/siscom-unet/`).
